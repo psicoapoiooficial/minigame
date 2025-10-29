@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quebra-Pensamentos - Jogo Terapêutico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: #ffd54f;
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd54f, #ffecb3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 20px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .game-area {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffd54f;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #2196f3, #1976d2);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #4caf50, #388e3c);
+        }
+
+        .puzzle-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .thought-column {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .column-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            color: #ffd54f;
+        }
+
+        .negative-column {
+            border: 2px dashed #f44336;
+        }
+
+        .positive-column {
+            border: 2px dashed #4caf50;
+        }
+
+        .thought-piece {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            border-left: 4px solid #f44336;
+            user-select: none;
+        }
+
+        .thought-piece.positive {
+            border-left: 4px solid #4caf50;
+            cursor: default;
+        }
+
+        .thought-piece.dragging {
+            opacity: 0.7;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .thought-piece.matched {
+            opacity: 0.7;
+            cursor: default;
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .thought-piece.drop-zone {
+            background: rgba(255, 213, 79, 0.3);
+            border: 2px dashed #ffd54f;
+        }
+
+        .thought-text {
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .thought-hint {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffd54f;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(45deg, #ffd54f, #ffecb3);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .info-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #ffecb3;
+            text-align: center;
+        }
+
+        .therapy-tips {
+            margin-bottom: 25px;
+        }
+
+        .tip {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffd54f;
+        }
+
+        .achievements {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .achievement {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .achievement.unlocked {
+            opacity: 1;
+            background: rgba(255, 213, 79, 0.2);
+            border: 1px solid #ffd54f;
+        }
+
+        .achievement i {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: #ffd54f;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.positive {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4caf50;
+        }
+
+        .feedback.negative {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+
+        .level-indicator {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.2rem;
+        }
+
+        .level-number {
+            font-weight: bold;
+            color: #ffd54f;
+            font-size: 1.5rem;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .game-area, .info-panel {
+                min-width: 100%;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .puzzle-area {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-puzzle-piece"></i>
+                <h1>Quebra-Pensamentos</h1>
+            </div>
+            <p class="subtitle">Reestruture pensamentos negativos em perspectivas mais saudáveis e realistas</p>
+        </header>
+
+        <div class="game-container">
+            <div class="game-area">
+                <h2 class="game-title">Reorganize Seus Pensamentos</h2>
+                
+                <div class="controls">
+                    <button class="btn" id="startBtn">
+                        <i class="fas fa-play"></i> Iniciar Jogo
+                    </button>
+                    <button class="btn btn-secondary" id="hintBtn">
+                        <i class="fas fa-lightbulb"></i> Dica
+                    </button>
+                    <button class="btn btn-success" id="nextLevelBtn" disabled>
+                        <i class="fas fa-arrow-right"></i> Próximo Nível
+                    </button>
+                </div>
+                
+                <div class="level-indicator">
+                    Nível: <span class="level-number" id="levelNumber">1</span> de 5
+                </div>
+                
+                <div class="puzzle-area">
+                    <div class="thought-column negative-column">
+                        <div class="column-title">Pensamentos Negativos</div>
+                        <div id="negativeThoughts"></div>
+                    </div>
+                    
+                    <div class="thought-column positive-column">
+                        <div class="column-title">Perspectivas Realistas</div>
+                        <div id="positiveThoughts"></div>
+                    </div>
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="matchesCount">0</div>
+                        <div class="stat-label">Combinações</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="score">0</div>
+                        <div class="stat-label">Pontuação</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="timeLeft">60</div>
+                        <div class="stat-label">Tempo Restante</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <h3>Progresso no Nível</h3>
+                    <div class="progress-bar">
+                        <div class="progress" id="progressBar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h2 class="info-title">Técnica de Reestruturação Cognitiva</h2>
+                
+                <div class="therapy-tips">
+                    <div class="tip">
+                        <h3><i class="fas fa-brain"></i> Como Funciona</h3>
+                        <p>Arraste os pensamentos negativos para combinar com as perspectivas realistas correspondentes. Esta técnica ajuda a desafiar padrões de pensamento distorcidos.</p>
+                    </div>
+                    
+                    <div class="tip">
+                        <h3><i class="fas fa-heart"></i> Benefícios</h3>
+                        <p>A reestruturação cognitiva reduz a ansiedade, melhora o humor e desenvolve resiliência emocional através da mudança de padrões mentais.</p>
+                    </div>
+                    
+                    <div class="tip">
+                        <h3><i class="fas fa-graduation-cap"></i> Dica Terapêutica</h3>
+                        <p>Observe como pequenas mudanças na perspectiva podem transformar completamente como você se sente sobre uma situação.</p>
+                    </div>
+                </div>
+                
+                <div class="achievements">
+                    <div class="achievement" id="ach1">
+                        <i class="fas fa-star"></i>
+                        <div>Primeira Combinação</div>
+                    </div>
+                    <div class="achievement" id="ach2">
+                        <i class="fas fa-bolt"></i>
+                        <div>Rápido</div>
+                    </div>
+                    <div class="achievement" id="ach3">
+                        <i class="fas fa-trophy"></i>
+                        <div>Mestre Cognitivo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Quebra-Pensamentos - Jogo Terapêutico para Saúde Mental | Baseado em Terapia Cognitivo-Comportamental</p>
+        </footer>
+    </div>
+
+    <script>
+        // Elementos do DOM
+        const startBtn = document.getElementById('startBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const negativeThoughtsEl = document.getElementById('negativeThoughts');
+        const positiveThoughtsEl = document.getElementById('positiveThoughts');
+        const matchesCountEl = document.getElementById('matchesCount');
+        const scoreEl = document.getElementById('score');
+        const timeLeftEl = document.getElementById('timeLeft');
+        const progressBar = document.getElementById('progressBar');
+        const feedbackEl = document.getElementById('feedback');
+        const levelNumberEl = document.getElementById('levelNumber');
+
+        // Dados do jogo - pensamentos negativos e suas reestruturações
+        const thoughtPairs = [
+            {
+                negative: "Eu sempre falho em tudo que tento",
+                positive: "Às vezes não obtenho os resultados que espero, mas tenho sucesso em várias áreas",
+                hint: "Pensamentos absolutos como 'sempre' e 'nunca' são geralmente imprecisos"
+            },
+            {
+                negative: "Ninguém gosta de mim",
+                positive: "Algumas pessoas podem não me entender, mas tenho pessoas que se importam comigo",
+                hint: "Generalizações excessivas ignoram evidências contrárias"
+            },
+            {
+                negative: "Se eu cometer um erro, será catastrófico",
+                positive: "Erros são oportunidades de aprendizado e raramente são tão graves quanto imagino",
+                hint: "Catastrofização amplifica desproporcionalmente as consequências"
+            },
+            {
+                negative: "Eu não sou bom o suficiente",
+                positive: "Tenho qualidades únicas e estou em constante evolução como pessoa",
+                hint: "Autoavaliações globais ignoram nossas múltiplas dimensões"
+            },
+            {
+                negative: "Tenho que ser perfeito em tudo",
+                positive: "Posso me esforçar para fazer o meu melhor, sem a pressão da perfeição",
+                hint: "Perfeccionismo cria expectativas irreais e causa sofrimento"
+            },
+            {
+                negative: "Se algo pode dar errado, vai dar errado",
+                positive: "Algumas coisas podem não sair como planejado, mas muitas outras darão certo",
+                hint: "Pensamento negativista ignora probabilidades reais"
+            },
+            {
+                negative: "Meus sentimentos negativos refletem a realidade",
+                positive: "Meus sentimentos são válidos, mas nem sempre refletem a situação com precisão",
+                hint: "Emoções são informações, não fatos absolutos"
+            },
+            {
+                negative: "Eu deveria ser mais como aquela pessoa",
+                positive: "Posso admirar qualidades em outros enquanto valorizo minhas próprias características",
+                hint: "Comparações injustas ignoram contextos e jornadas diferentes"
+            }
+        ];
+
+        // Variáveis do jogo
+        let currentLevel = 1;
+        let matches = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let gameActive = false;
+        let timerInterval;
+        let currentPairs = [];
+        let draggedElement = null;
+
+        // Inicialização do jogo
+        function initGame() {
+            matches = 0;
+            score = 0;
+            timeLeft = 60;
+            gameActive = true;
+            
+            updateStats();
+            progressBar.style.width = '0%';
+            feedbackEl.classList.remove('show');
+            nextLevelBtn.disabled = true;
+            
+            // Seleciona pares para o nível atual
+            selectThoughtsForLevel();
+            
+            // Renderiza pensamentos na tela
+            renderThoughts();
+            
+            // Inicia o timer
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            // Desbloqueia conquistas
+            document.getElementById('ach1').classList.remove('unlocked');
+            document.getElementById('ach2').classList.remove('unlocked');
+            document.getElementById('ach3').classList.remove('unlocked');
+            
+            startBtn.innerHTML = '<i class="fas fa-redo"></i> Reiniciar';
+        }
+
+        // Seleciona pensamentos para o nível atual
+        function selectThoughtsForLevel() {
+            // Embaralha os pares
+            const shuffled = [...thoughtPairs].sort(() => Math.random() - 0.5);
+            
+            // Seleciona 3 + nível atual de pares
+            const pairsCount = Math.min(3 + currentLevel, thoughtPairs.length);
+            currentPairs = shuffled.slice(0, pairsCount);
+        }
+
+        // Renderiza os pensamentos na tela
+        function renderThoughts() {
+            negativeThoughtsEl.innerHTML = '';
+            positiveThoughtsEl.innerHTML = '';
+            
+            // Embaralha os pensamentos positivos
+            const positiveShuffled = [...currentPairs].sort(() => Math.random() - 0.5);
+            
+            currentPairs.forEach((pair, index) => {
+                // Cria elemento do pensamento negativo
+                const negativeEl = document.createElement('div');
+                negativeEl.className = 'thought-piece';
+                negativeEl.dataset.id = index;
+                negativeEl.draggable = true;
+                negativeEl.innerHTML = `
+                    <div class="thought-text">${pair.negative}</div>
+                `;
+                negativeThoughtsEl.appendChild(negativeEl);
+                
+                // Cria elemento do pensamento positivo (embaralhado)
+                const positiveEl = document.createElement('div');
+                positiveEl.className = 'thought-piece positive';
+                positiveEl.dataset.id = index;
+                positiveEl.dataset.correctId = index;
+                positiveEl.innerHTML = `
+                    <div class="thought-text">${positiveShuffled[index].positive}</div>
+                    <div class="thought-hint">Arraste um pensamento negativo aqui</div>
+                `;
+                positiveThoughtsEl.appendChild(positiveEl);
+                
+                // Adiciona event listeners para drag and drop
+                setupDragAndDrop(negativeEl, positiveEl);
+            });
+        }
+
+        // Configura drag and drop
+        function setupDragAndDrop(negativeEl, positiveEl) {
+            // Eventos para o elemento arrastável (negativo)
+            negativeEl.addEventListener('dragstart', handleDragStart);
+            negativeEl.addEventListener('dragend', handleDragEnd);
+            
+            // Eventos para o elemento de destino (positivo)
+            positiveEl.addEventListener('dragover', handleDragOver);
+            positiveEl.addEventListener('dragenter', handleDragEnter);
+            positiveEl.addEventListener('dragleave', handleDragLeave);
+            positiveEl.addEventListener('drop', handleDrop);
+        }
+
+        // Handlers de drag and drop
+        function handleDragStart(e) {
+            if (!gameActive) {
+                e.preventDefault();
+                return;
+            }
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            // Remove a classe drop-zone de todos os elementos
+            document.querySelectorAll('.thought-piece.positive').forEach(el => {
+                el.classList.remove('drop-zone');
+            });
+        }
+
+        function handleDragOver(e) {
+            if (!gameActive) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            if (!gameActive) return;
+            e.preventDefault();
+            this.classList.add('drop-zone');
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('drop-zone');
+        }
+
+        function handleDrop(e) {
+            if (!gameActive || !draggedElement) return;
+            e.preventDefault();
+            this.classList.remove('drop-zone');
+            
+            const negativeId = draggedElement.dataset.id;
+            const positiveId = this.dataset.correctId;
+            
+            // Verifica se é uma combinação correta
+            if (negativeId === positiveId) {
+                handleCorrectMatch(draggedElement, this);
+            } else {
+                handleIncorrectMatch();
+            }
+            
+            draggedElement = null;
+        }
+
+        // Manipula combinação correta
+        function handleCorrectMatch(negativeEl, positiveEl) {
+            negativeEl.classList.add('matched');
+            positiveEl.classList.add('matched');
+            negativeEl.draggable = false;
+            
+            // Remove event listeners
+            negativeEl.removeEventListener('dragstart', handleDragStart);
+            negativeEl.removeEventListener('dragend', handleDragEnd);
+            
+            matches++;
+            score += 10 * currentLevel;
+            
+            // Feedback positivo
+            showFeedback("Combinação correta! Excelente reestruturação cognitiva!", "positive");
+            
+            // Atualiza estatísticas
+            updateStats();
+            
+            // Verifica se completou o nível
+            if (matches === currentPairs.length) {
+                levelComplete();
+            }
+            
+            // Conquistas
+            if (matches === 1) {
+                document.getElementById('ach1').classList.add('unlocked');
+            }
+        }
+
+        // Manipula combinação incorreta
+        function handleIncorrectMatch() {
+            score = Math.max(0, score - 5);
+            showFeedback("Esta não é a combinação correta. Tente novamente!", "negative");
+            updateStats();
+        }
+
+        // Mostra feedback
+        function showFeedback(message, type) {
+            feedbackEl.textContent = message;
+            feedbackEl.className = 'feedback';
+            feedbackEl.classList.add(type, 'show');
+            
+            setTimeout(() => {
+                feedbackEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // Atualiza estatísticas
+        function updateStats() {
+            matchesCountEl.textContent = `${matches}/${currentPairs.length}`;
+            scoreEl.textContent = score;
+            timeLeftEl.textContent = timeLeft;
+            
+            // Atualiza barra de progresso
+            const progress = (matches / currentPairs.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Atualiza o timer
+        function updateTimer() {
+            if (!gameActive) return;
+            
+            timeLeft--;
+            timeLeftEl.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+            
+            // Conquista por ser rápido
+            if (timeLeft > 45 && matches === currentPairs.length) {
+                document.getElementById('ach2').classList.add('unlocked');
+            }
+        }
+
+        // Nível completo
+        function levelComplete() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            // Bônus de tempo restante
+            const timeBonus = timeLeft * currentLevel;
+            score += timeBonus;
+            
+            showFeedback(`Nível ${currentLevel} completo! Bônus de tempo: +${timeBonus} pontos`, "positive");
+            updateStats();
+            
+            nextLevelBtn.disabled = false;
+            
+            // Conquista de mestre cognitivo
+            if (currentLevel >= 3) {
+                document.getElementById('ach3').classList.add('unlocked');
+            }
+        }
+
+        // Fim de jogo
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            showFeedback("Tempo esgotado! Clique em Reiniciar para tentar novamente.", "negative");
+        }
+
+        // Próximo nível
+        function nextLevel() {
+            if (currentLevel < 5) {
+                currentLevel++;
+                levelNumberEl.textContent = currentLevel;
+                initGame();
+            } else {
+                showFeedback("Parabéns! Você completou todos os níveis!", "positive");
+                nextLevelBtn.disabled = true;
+            }
+        }
+
+        // Fornece uma dica
+        function provideHint() {
+            if (!gameActive) return;
+            
+            // Encontra um par não combinado
+            const unmatchedPairs = currentPairs.filter((_, index) => {
+                const negativeEl = document.querySelector(`.thought-piece[data-id="${index}"]:not(.matched)`);
+                return negativeEl !== null;
+            });
+            
+            if (unmatchedPairs.length > 0) {
+                const randomPair = unmatchedPairs[Math.floor(Math.random() * unmatchedPairs.length)];
+                showFeedback(`Dica: ${randomPair.hint}`, "positive");
+                score = Math.max(0, score - 5);
+                updateStats();
+            }
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', initGame);
+        nextLevelBtn.addEventListener('click', nextLevel);
+        hintBtn.addEventListener('click', provideHint);
+
+        // Inicialização
+        levelNumberEl.textContent = currentLevel;
+        
+        // Previne comportamento padrão de drag and drop
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
